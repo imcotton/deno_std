@@ -1,5 +1,9 @@
 // Copyright 2018-2022 the Deno authors. All rights reserved. MIT license.
-import { assertEquals, assertRejects } from "../testing/asserts.ts";
+import {
+  assertEquals,
+  assertRejects,
+  assertThrows,
+} from "../testing/asserts.ts";
 import { MuxAsyncIterator } from "./mux_async_iterator.ts";
 
 async function* gen123(): AsyncIterableIterator<number> {
@@ -65,4 +69,16 @@ Deno.test({
       "something went wrong",
     );
   },
+});
+
+Deno.test("[async] MuxAsyncIterator::add need this in context", async function () {
+  const mux = new MuxAsyncIterator<number>();
+  const add = mux.add;
+  // deno-lint-ignore ban-ts-comment
+  // @ts-expect-error
+  assertThrows(() => add(gen123()));
+
+  await assertRejects(() => {
+    return Promise.resolve(gen456()).then(mux.add);
+  });
 });
