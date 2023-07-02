@@ -5,22 +5,26 @@
  * Converts the byte array to a UUID string
  * @param bytes Used to convert Byte to Hex
  */
-export function bytesToUuid(bytes: number[] | Uint8Array): string {
-  const bits = [...bytes].map((bit) => {
-    const s = bit.toString(16);
-    return bit < 0x10 ? "0" + s : s;
-  });
+export function bytesToUuid(bytes: Iterable<number>): string {
+  return uuidDashing(
+    Array.from(bytes).map(
+      (num) => num.toString(16).padStart(2, "0"),
+    ),
+  ).join("");
+}
+
+function uuidDashing(bits: readonly string[], dash = "-") {
   return [
-    ...bits.slice(0, 4),
-    "-",
-    ...bits.slice(4, 6),
-    "-",
-    ...bits.slice(6, 8),
-    "-",
-    ...bits.slice(8, 10),
-    "-",
-    ...bits.slice(10, 16),
-  ].join("");
+    bits.slice(0, 4),
+    dash,
+    bits.slice(4, 6),
+    dash,
+    bits.slice(6, 8),
+    dash,
+    bits.slice(8, 10),
+    dash,
+    bits.slice(10, 16),
+  ].flat();
 }
 
 /**
@@ -28,12 +32,6 @@ export function bytesToUuid(bytes: number[] | Uint8Array): string {
  * @param uuid Value that gets converted.
  */
 export function uuidToBytes(uuid: string): number[] {
-  const bytes: number[] = [];
-
-  uuid.replace(/[a-fA-F0-9]{2}/g, (hex: string): string => {
-    bytes.push(parseInt(hex, 16));
-    return "";
-  });
-
-  return bytes;
+  const bytes = uuid.toLowerCase().match(/[a-f0-9]{2}/g) ?? [];
+  return bytes.map((str) => parseInt(str, 16));
 }
